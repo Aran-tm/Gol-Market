@@ -9,6 +9,13 @@ export default defineConfig({
     // Solana web3.js / spl-token need Buffer + process in the browser.
     nodePolyfills({ globals: { Buffer: true, global: true, process: true } }),
   ],
+  build: {
+    // Default (4kb) inlines every flag-icons SVG referenced from its CSS as a base64
+    // data URI at build time — ~250 countries end up baked into the main CSS bundle
+    // even though a given page only ever renders a handful of team flags. Disabling
+    // inlining lets the browser fetch (and cache) only the flags actually rendered.
+    assetsInlineLimit: 0,
+  },
   server: {
     // Proxy TxLINE API through the dev server to avoid browser CORS.
     // Browser calls /txapi/... → https://txline.txodds.com/...

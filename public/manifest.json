@@ -1,0 +1,13 @@
+{
+  "name": "GolMarket — Verifiable World Cup Prediction Markets",
+  "short_name": "GolMarket",
+  "description": "World Cup prediction markets that create and resolve themselves, with a verifiable TxLINE receipt for every result.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06070b",
+  "theme_color": "#0a0a0f",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

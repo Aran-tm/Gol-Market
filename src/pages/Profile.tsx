@@ -203,6 +203,7 @@ export default function Profile() {
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder="Display name"
+                      aria-label="Display name"
                       className="field flex-1 !py-2"
                       autoFocus
                       onKeyDown={(e) => {
@@ -307,7 +308,7 @@ export default function Profile() {
             >
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-bold">Choose your avatar</h3>
-                <button onClick={() => setPicking(false)} className="text-white/50 hover:text-white">
+                <button onClick={() => setPicking(false)} className="text-white/50 hover:text-white" aria-label="Close">
                   <X className="h-5 w-5" />
                 </button>
               </div>

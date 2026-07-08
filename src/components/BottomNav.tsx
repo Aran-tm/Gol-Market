@@ -32,7 +32,7 @@ export default function BottomNav() {
               key={item.path}
               onClick={() => navigate(item.path)}
               className={`flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition ${
-                active ? "text-grass" : "text-white/40 hover:text-white/70"
+                active ? "text-grass" : "text-white/55 hover:text-white/70"
               }`}
             >
               <item.icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />

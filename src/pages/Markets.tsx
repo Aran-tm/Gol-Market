@@ -233,7 +233,7 @@ export default function Markets() {
 
       {grouped.map(([date, list]) => (
         <div key={date} className="space-y-3">
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/35">{date}</h3>
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/50">{date}</h3>
           {list.map((m) => {
         const live = isLive(m.game_state);
         const done = isFinished(m.game_state);

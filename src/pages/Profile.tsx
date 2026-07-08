@@ -251,7 +251,7 @@ export default function Profile() {
 
       {/* Recent predictions */}
       <section>
-        <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/35">Your predictions</h2>
+        <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/50">Your predictions</h2>
         {!statsLoaded ? (
           <Skeleton rows={3} />
         ) : recent.length === 0 ? (

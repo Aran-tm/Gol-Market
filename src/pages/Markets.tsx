@@ -27,6 +27,14 @@ const KIND_LABEL: Record<string, string> = {
   total_goals: `Total goals · ${TOTAL_GOALS_POINTS} pts`,
 };
 
+type Filter = "all" | "live" | "upcoming" | "finished";
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "live", label: "Live" },
+  { key: "upcoming", label: "Upcoming" },
+  { key: "finished", label: "Finished" },
+];
+
 function ProofModal({ market, onClose }: { market: MarketRow; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" onClick={onClose}>
@@ -119,6 +127,7 @@ export default function Markets() {
   const [mine, setMine] = useState<Record<string, PredictionRow>>({});
   const [proof, setProof] = useState<MarketRow | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>("all");
 
   const refresh = useCallback(() => {
     loadMatches().then(setMatches).catch((e) => setError(e.message));
@@ -166,14 +175,41 @@ export default function Markets() {
 
   const now = Date.now();
   const visible = matches.filter((m) => !isStale(m.kickoff, m.game_state, now));
-  // Live first, then upcoming, then finished (newest first).
+  // Live first, then upcoming, then finished (newest first) — used for "all" and as the
+  // stable order within each date group.
   const rank = (m: MatchWithMarkets) => (isLive(m.game_state) ? 0 : isFinished(m.game_state) ? 2 : 1);
-  visible.sort((a, b) =>
+  const sorted = [...visible].sort((a, b) =>
     rank(a) - rank(b) ||
     (rank(a) === 2
       ? new Date(b.kickoff ?? 0).getTime() - new Date(a.kickoff ?? 0).getTime()
       : new Date(a.kickoff ?? 0).getTime() - new Date(b.kickoff ?? 0).getTime()),
   );
+
+  const counts = {
+    live: visible.filter((m) => isLive(m.game_state)).length,
+    finished: visible.filter((m) => isFinished(m.game_state)).length,
+  };
+
+  const filtered = sorted.filter((m) => {
+    if (filter === "live") return isLive(m.game_state);
+    if (filter === "upcoming") return m.game_state === 1;
+    if (filter === "finished") return isFinished(m.game_state);
+    return true;
+  });
+
+  // Group by matchday, keeping each group in the pre-sorted (live-first) order.
+  const grouped = (() => {
+    const map = new Map<string, MatchWithMarkets[]>();
+    for (const m of filtered) {
+      const key = m.kickoff
+        ? new Date(m.kickoff).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })
+        : "TBD";
+      const arr = map.get(key) ?? [];
+      arr.push(m);
+      map.set(key, arr);
+    }
+    return [...map.entries()];
+  })();
 
   return (
     <div className="space-y-4">
@@ -188,7 +224,43 @@ export default function Markets() {
           </p>
         </div>
       )}
-      {visible.map((m) => {
+
+      <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
+        {FILTERS.map((f) => {
+          const active = filter === f.key;
+          const badge = f.key === "live" ? counts.live : f.key === "finished" ? counts.finished : 0;
+          return (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
+                active
+                  ? "border-grass/60 bg-grass/15 text-grass"
+                  : "border-white/10 bg-white/[0.04] text-white/50 hover:text-white/80",
+              )}
+            >
+              {f.label}
+              {badge > 0 && (
+                <span className={cn("rounded-full px-1.5 py-0 text-[10px] font-bold", active ? "bg-grass/30" : "bg-white/10")}>
+                  {badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {filtered.length === 0 && (
+        <p className="rounded-2xl border border-white/5 bg-ink-800 p-4 text-center text-sm text-white/40">
+          No {filter === "all" ? "" : filter} matches right now.
+        </p>
+      )}
+
+      {grouped.map(([date, list]) => (
+        <div key={date} className="space-y-3">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/35">{date}</h3>
+          {list.map((m) => {
         const live = isLive(m.game_state);
         const done = isFinished(m.game_state);
         const locked = live || done || (!!m.kickoff && new Date(m.kickoff).getTime() <= now);
@@ -235,8 +307,10 @@ export default function Markets() {
               )}
             </div>
           </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      ))}
       {proof && <ProofModal market={proof} onClose={() => setProof(null)} />}
     </div>
   );

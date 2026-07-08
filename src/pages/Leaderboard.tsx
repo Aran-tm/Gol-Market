@@ -3,6 +3,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Trophy } from "lucide-react";
 import { cn } from "../lib/cn";
 import { loadLeaderboard, type LeaderboardRow } from "../lib/api";
+import Avatar from "../components/Avatar";
 import { Spinner } from "../components/ui";
 
 const short = (w: string) => `${w.slice(0, 4)}…${w.slice(-4)}`;
@@ -41,6 +42,7 @@ export default function Leaderboard() {
             )}
           >
             <span className="w-6 text-right font-bold text-white/40">{i + 1}</span>
+            <Avatar wallet={r.wallet_address} name={r.display_name} src={r.avatar_url} size={28} />
             <span className="font-semibold">
               {r.display_name || short(r.wallet_address)}
               {r.wallet_address === me && <span className="ml-2 text-xs text-gold">you</span>}

@@ -9,8 +9,10 @@
 create table if not exists profiles (
   wallet_address text primary key,
   display_name   text,
+  avatar_url     text,                                 -- custom upload (Storage) or NFT image URL
   created_at     timestamptz not null default now()
 );
+alter table profiles add column if not exists avatar_url text;
 
 -- ─────────────────────────────────────────────────────────────
 -- MATCHES — mirror of TxLINE fixtures + live state (fed by worker/ingest.ts)
@@ -89,18 +91,26 @@ select
   pr.display_name,
   coalesce(sum(p.points_won), 0)::int as total_points,
   count(*)::int                       as total_predictions,
-  count(*) filter (where p.points_won > 0)::int as correct_predictions
+  count(*) filter (where p.points_won > 0)::int as correct_predictions,
+  pr.avatar_url
 from predictions p
 join profiles pr on pr.wallet_address = p.wallet_address
-group by p.wallet_address, pr.display_name;
+group by p.wallet_address, pr.display_name, pr.avatar_url;
 
 -- Helpful indexes
 create index if not exists idx_markets_fixture     on markets(fixture_id);
 create index if not exists idx_predictions_wallet  on predictions(wallet_address);
 create index if not exists idx_events_fixture      on match_events(fixture_id);
 
--- Realtime: browser subscribes to live score + resolution changes.
-alter publication supabase_realtime add table matches, markets, predictions;
+-- Realtime: browser subscribes to live score + resolution changes. Wrapped because
+-- ALTER PUBLICATION ... ADD TABLE has no IF NOT EXISTS and errors if already a member
+-- (this file is re-run whenever the schema changes).
+do $$
+begin
+  alter publication supabase_realtime add table matches, markets, predictions;
+exception when duplicate_object then
+  null;
+end $$;
 
 -- RLS: reads public (anon). Writes only via service-role (ingest/resolve workers)
 -- and the wallet-write edge function (signature-verified).
@@ -109,8 +119,22 @@ alter table matches     enable row level security;
 alter table match_events enable row level security;
 alter table markets     enable row level security;
 alter table predictions enable row level security;
+drop policy if exists "public read profiles"    on profiles;
+drop policy if exists "public read matches"     on matches;
+drop policy if exists "public read events"      on match_events;
+drop policy if exists "public read markets"     on markets;
+drop policy if exists "public read predictions" on predictions;
 create policy "public read profiles"    on profiles    for select using (true);
 create policy "public read matches"     on matches     for select using (true);
 create policy "public read events"      on match_events for select using (true);
 create policy "public read markets"     on markets     for select using (true);
 create policy "public read predictions" on predictions for select using (true);
+
+-- Storage bucket for custom avatar uploads (NFT avatars just store their own external URL,
+-- no bucket needed for those). Writes only via a signed upload URL minted by wallet-write
+-- after verifying the wallet's signature — no client-facing write policy required.
+insert into storage.buckets (id, name, public)
+  values ('avatars', 'avatars', true)
+  on conflict (id) do nothing;
+drop policy if exists "avatars_read_all" on storage.objects;
+create policy "avatars_read_all" on storage.objects for select using (bucket_id = 'avatars');

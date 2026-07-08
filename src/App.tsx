@@ -2,6 +2,8 @@ import { Routes, Route, Navigate, NavLink } from "react-router-dom";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import Markets from "./pages/Markets";
 import Leaderboard from "./pages/Leaderboard";
+import Resolutions from "./pages/Resolutions";
+import Profile from "./pages/Profile";
 import BottomNav from "./components/BottomNav";
 
 function Header() {
@@ -11,7 +13,7 @@ function Header() {
         <NavLink to="/" className="mr-auto text-lg font-bold tracking-tight">
           Gol<span className="text-grass">Market</span>
         </NavLink>
-        <WalletMultiButton style={{ height: 36, fontSize: 13, borderRadius: 10 }} />
+        <WalletMultiButton />
       </div>
     </header>
   );
@@ -25,6 +27,8 @@ export default function App() {
         <Routes>
           <Route index element={<Markets />} />
           <Route path="leaderboard" element={<Leaderboard />} />
+          <Route path="resolutions" element={<Resolutions />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

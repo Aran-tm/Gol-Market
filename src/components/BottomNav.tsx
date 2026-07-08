@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Radio, Trophy } from "lucide-react";
+import { Radio, ShieldCheck, Trophy, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface NavItem {
@@ -11,6 +11,8 @@ interface NavItem {
 const ITEMS: NavItem[] = [
   { icon: Radio, label: "Markets", path: "/" },
   { icon: Trophy, label: "Leaderboard", path: "/leaderboard" },
+  { icon: ShieldCheck, label: "Resolutions", path: "/resolutions" },
+  { icon: User, label: "Profile", path: "/profile" },
 ];
 
 export default function BottomNav() {
@@ -29,7 +31,7 @@ export default function BottomNav() {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center gap-0.5 rounded-xl px-6 py-1.5 transition ${
+              className={`flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition ${
                 active ? "text-grass" : "text-white/40 hover:text-white/70"
               }`}
             >

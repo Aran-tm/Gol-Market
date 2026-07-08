@@ -75,6 +75,20 @@ Deno.serve(async (req) => {
         await db.from("profiles").upsert({ wallet_address: wallet, display_name: p.display_name }, { onConflict: "wallet_address" });
         return json({ ok: true });
       }
+      case "update_avatar": {
+        if (p.avatar_url !== null && typeof p.avatar_url !== "string") {
+          return json({ error: "avatar_url required" }, 400);
+        }
+        await db.from("profiles").upsert({ wallet_address: wallet, avatar_url: p.avatar_url ?? null }, { onConflict: "wallet_address" });
+        return json({ ok: true });
+      }
+      case "get_avatar_upload_url": {
+        const ext = typeof p.ext === "string" && /^[a-z0-9]{1,8}$/i.test(p.ext) ? p.ext : "jpg";
+        const path = `${wallet}/avatar.${ext}`;
+        const { data, error } = await db.storage.from("avatars").createSignedUploadUrl(path, { upsert: true });
+        if (error) return json({ error: error.message }, 500);
+        return json({ path, token: data.token });
+      }
       case "predict": {
         // payload: { market_id, pick } — pick changeable until kickoff.
         if (typeof p.market_id !== "string" || typeof p.pick !== "string") {

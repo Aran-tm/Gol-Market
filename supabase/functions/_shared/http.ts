@@ -12,10 +12,19 @@ export async function fetchRetry(url: string, init: RequestInit, tries = 4): Pro
   throw lastErr;
 }
 
-/** True only for a request carrying exactly this project's service-role key. */
+/** True only when the caller presents a JWT whose role claim is service_role.
+ *  The platform gateway (verify_jwt) has already verified the signature, so we
+ *  only need to read the role — this blocks anon-key callers (the anon key is
+ *  public in the frontend) while allowing the cron job's service-role calls. */
 export function isServiceRoleRequest(req: Request): boolean {
   const auth = req.headers.get("Authorization") ?? "";
   const token = auth.replace(/^Bearer\s+/i, "");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  return !!serviceKey && token === serviceKey;
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
+  try {
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return payload.role === "service_role";
+  } catch {
+    return false;
+  }
 }

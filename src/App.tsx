@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, NavLink } from "react-router-dom";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import Markets from "./pages/Markets";
+import Background from "./components/Background";
 import BottomNav from "./components/BottomNav";
 import { Spinner } from "./components/ui";
 
@@ -21,10 +22,15 @@ function PageFallback() {
 
 function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/5 bg-ink-950/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-ink-950/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
-        <NavLink to="/" className="mr-auto text-lg font-bold tracking-tight">
-          Gol<span className="text-grass">Market</span>
+        <NavLink to="/" className="mr-auto flex items-center gap-2">
+          <span className="grid h-8 w-8 place-items-center rounded-xl border border-grass/30 bg-grass/10 text-base leading-none">
+            ⚽
+          </span>
+          <span className="text-lg font-extrabold tracking-tight">
+            Gol<span className="text-gradient">Market</span>
+          </span>
         </NavLink>
         <WalletMultiButton />
       </div>
@@ -34,7 +40,8 @@ function Header() {
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-ink text-white">
+    <div className="relative min-h-screen text-white">
+      <Background />
       <Header />
       <main className="pb-nav mx-auto max-w-3xl px-4 py-6">
         <Suspense fallback={<PageFallback />}>

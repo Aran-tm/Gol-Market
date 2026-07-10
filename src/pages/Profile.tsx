@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type ChangeEvent } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { AnimatePresence, motion } from "framer-motion";
-import { LogOut, Sparkles, Star, Target, Trophy, Upload, Trash2, X } from "lucide-react";
+import { LogOut, Sparkles, Star, Target, Trophy, Upload, Trash2, User, X } from "lucide-react";
 import {
   loadProfile,
   updateDisplayName,
@@ -170,7 +170,12 @@ export default function Profile() {
 
   return (
     <div className="space-y-4 pb-4">
-      <h1 className="text-2xl font-bold">Profile</h1>
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-2xl border border-grass/30 bg-grass/10">
+          <User className="h-5 w-5 text-grass" />
+        </span>
+        <h1 className="text-xl font-extrabold tracking-tight">Profile</h1>
+      </div>
 
       {pageError && (
         <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{pageError}</p>
